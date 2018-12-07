@@ -29,7 +29,7 @@
             }
 
             #myDiagramDiv {
-                height: 500px;
+                height: 600px;
                 flex: 1;
             }
         }
@@ -92,7 +92,8 @@
         }
 
         // Create a seat element at a particular alignment relative to the table.
-        function Seat(number, align, focus) {
+        function Seat(number, align, focus, bgColor) {
+            if(bgColor === null || bgColor === undefined) bgColor = "burlywood";
             if (typeof align === 'string') align = go.Spot.parse(align);
             if (!align || !align.isSpot()) align = go.Spot.Right;
             if (typeof focus === 'string') focus = go.Spot.parse(focus);
@@ -105,7 +106,7 @@
                 goJs(go.Shape, "Circle", {
                         name: "SEATSHAPE",
                         desiredSize: new go.Size(35, 35),
-                        fill: "burlywood",
+                        fill: bgColor,
                         stroke: "white",
                         strokeWidth: 2
                     },
@@ -281,6 +282,10 @@
                 });
                 
                 console.log('mouse drop Diagram`s background');
+            };
+            
+            myDiagram.doubleClick = (e)=>{
+                console.log(e);
             };
 
             // to simulate a "move" from the Palette, the source Node must be deleted.
@@ -611,290 +616,6 @@
         // end HorizontalTextRotatingTool
 
     </script>
-    <script>
-        //jQuery('#selectSeat').multiselect();
-        
-        $(document).ready(function() {
-            $('#selSeat').multiselect({
-                enableFiltering: true,
-                includeSelectAllOption: true
-            });
-        });
-        
-        var newLineLoc = "0 0";
-        
-        function CSeats(total) {
-            var seats = [];
-            if (total > 0) {
-                var p = new go.Point(0, -0.5);  // start at top
-                var ang = 360 / total;  // go clockwise
-                for (var i = 0; i < total; i++) {
-                  seats.push(Seat(i + 1, new go.Spot(p.x + 0.5, p.y + 0.5)));
-                  p.rotate(ang);
-                }
-            }
-            return seats;
-        }
-        
-        function RecSeats(total, seatAlign) {
-            var seats = [];
-//            if (total > 0) {
-//                var p = new go.Point(0, -0.5);  // start at top
-//                var ang = 360 / total;  // go clockwise
-//                
-//                console.log(p);
-//                console.log(ang);
-//                
-//                for (var i = 0; i < total; i++) {
-//                  seats.push(Seat(i + 1, new go.Spot(p.x + 0.5, p.y + 0.5)));
-//                  p.rotate(ang);
-//                
-//                  console.log(new go.Spot(p.x + 0.5, p.y + 0.5));
-//                  console.log(p.rotate(ang));
-//                }
-//            }
-            
-//            seats.push(Seat(1, "0.2 0", "0.5 1"));            
-//            seats.push(Seat(2, "0.2 1", "0.5 0"));
-//            seats.push(Seat(3, "0.5 0", "0.5 1"));
-            
-            if (total > 0) {
-                var p = new go.Point(0.2, 0);  // start at top
-                let px = seatAlign;
-                let py = 2.5;
-                let ox = 0;
-                let oy = 0;
-                
-                
-                //console.log(p);
-                
-                for (var i = 1; i <= total; i++) {                    
-                    //console.log(px);
-                    //py=py+0.2;
-                    
-                    if(i % 2 === 0){
-                        seats.push(Seat(i, new go.Spot(px, 1, ox, oy), go.Spot.Center)); 
-                        px = px + seatAlign;
-                        //py=py+0.2;
-                        
-                        ox = ox + 5;
-                        
-                        console.log(new go.Spot(px, 1, ox, oy), go.Spot.Center);         
-                        console.log(ox);
-                    }else{                        
-                        seats.push(Seat(i, new go.Spot(px, 0, ox, oy), go.Spot.Center));
-                        
-                        console.log(new go.Spot(px, 0, ox, oy), go.Spot.Center);   
-                        console.log(ox);
-                    }
-                    
-//                    seats.push(Seat(i, new go.Spot(p.x, 0, ox, 0)));
-//                    
-//                    console.log(new go.Spot(p.x, 0, ox, 0));
-//                    
-//                    p.x = p.x + 0.5;
-                    
-                    
-                    //console.log(new go.Spot(px, py)); 
-                }
-            }
-            
-            return seats;
-        }
-        
-        function createTable() {
-            const txtLineName = document.getElementById("lineName");
-            const txtTotalSeat = document.getElementById("seatTotal");  
-            const txtTbWidth = document.getElementById("tableWidth");
-            const txtTbHeight = document.getElementById("tableHeight");
-            
-            if(validateInput(txtLineName) && validateNumber(txtTotalSeat)){
-                const tbWidth = parseInt(txtTbWidth.value);
-                const tbHeight = parseInt(txtTbHeight.value);
-                const seatAlign = 35/tbWidth;
-                
-                myDiagram.nodeTemplateMap.add("TableOO",
-                goJs(go.Node, "Spot", tableStyle(),
-                    goJs(go.Panel, "Spot",
-                        goJs(go.Shape, "Rectangle", {
-                                name: "TABLESHAPE",
-                                desiredSize: new go.Size(tbWidth, tbHeight),
-                                fill: "burlywood",
-                                stroke: null
-                            },
-                            new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
-                            new go.Binding("fill")),
-                        goJs(go.TextBlock, {
-                                editable: true,
-                                font: "bold 11pt Verdana, sans-serif"
-                            },
-                            new go.Binding("text", "name").makeTwoWay(),
-                            new go.Binding("angle", "angle", function(n) {
-                                return -n;
-                            }))
-                      /*goJs("Button", { desiredSize: new go.Size(40, 20), click: function(e, obj){
-                          myDiagram.startTransaction("add seat");
-                         // you need to figure out the arguments to the Seat function
-                         obj.part.add(Seat(9, "1 1", "0 0"));
-                         // and you need to figure out if and how to modify the
-                         // alignment and alignmentFocus of the other seats
-                         myDiagram.commitTransaction("add seat"); 
-                      }})*/
-                    ),
-                    RecSeats(parseInt(txtTotalSeat.value), seatAlign)
-                ));               
-            
-            const l1 = {
-                "key": 5,
-                "category": "TableOO",
-                "name": txtLineName.value,
-                "guests": {},
-                "loc": newLineLoc
-            };
-
-            myDiagram.model.addNodeData(l1);
-                jQuery('#createTableModal').modal('hide');
-            }
-            
-            console.log(myDiagram.model.Ce);
-        }
-        
-        function DeleteLine(){
-            var table = myDiagram.selection.first();
-            
-            console.log(table);
-            
-            myDiagram.allowDelete = true; 
-            myDiagram.commandHandler.deleteSelection(); 
-            myDiagram.allowDelete = false;
-        }
-        
-        function AddSeat(){
-            var table = myDiagram.selection.first();
-            console.log(table);
-            //console.log(table.Wd);
-            console.log(table.data);
-            console.log(table.Ri);
-            console.log(table.elements.wc.n);
-            
-            if (!(table instanceof go.Node)) return;
-            if (table.category == "") return; // must not be a Person
-            myDiagram.startTransaction("add seat");
-            // you need to figure out the arguments to the Seat function
-            table.add(Seat(9, "1 1", "0 0"));
-            // and you need to figure out if and how to modify the
-            // alignment and alignmentFocus of the other seats
-            myDiagram.commitTransaction("add seat");
-        }
-        
-        function RemoveSeat(){
-//            var i = 11;
-//            for (var it = obj.elements; it.next(); ) {
-//                var elt = it.value;
-//                if (i <= 14) {
-//                    if (elt.name == i) {
-//                        obj.remove(elt);
-//                    }
-//                }
-//                i = i + 1;
-//            }
-//            const t = myDiagram.findNodeForKey(1);
-//            t.removeAt(3);
-            
-            var table = myDiagram.selection.first();
-            
-            if(table){
-                table.removeAt(2);
-            }else{
-                return;
-            }
-            
-            console.log(table);
-        }
-        
-        function allowDrop(ev) {
-            ev.preventDefault();
-        }
-        
-        function validateInput(e){            
-            if(e.value && e.value != ""){
-                e.classList.remove("required-border");
-                return true;
-            }else{
-                e.classList.add("required-border");
-                return false;
-            }            
-        }
-        
-        function validateNumber(e){
-            const v = e.value;
-            if(v && v != "" && Number.isInteger(parseInt(v)) && parseInt(v) > 0){
-                e.classList.remove("required-border");
-                return true;
-            }else{
-                e.classList.add("required-border");
-                return false;
-            }
-        }
-        
-//        var isDelAll = fase;
-//        function cbDelAllSeatCheckedChange(e){
-//            const v = e.checked;
-//            if(v){
-//                //document.getElementById("selectSeat").disabled = true;
-//                $('#selSeat').multiselect('disable');
-//                isDelAll = true;
-//            }else{
-//                $('#selSeat').multiselect('enable');
-//                isDelAll = false;
-//            }
-//        }
-        
-        function openDelSeatModal(){
-            var optionSeats = [];
-            var table = myDiagram.selection.first();
-            
-            if(table){
-                //console.log(table.elements.wc.n);
-                const seats = table.elements.wc.n;
-                for(let s of seats){
-                    //console.log(s.Sb);
-                    if(s.Sb && s.Sb !== ""){
-                        let o = s.Sb.toString();
-                        let option = {label: o, title: o, value: o};
-                        optionSeats.push(option);
-                    }
-                }
-                $('#selSeat').multiselect('dataprovider', optionSeats);
-            }else{
-                return;
-            }
-        }
-        
-        function delSeat(){
-            var table = myDiagram.selection.first();
-            if(table){
-                const seats = table.elements.wc.n;
-                var selectedOptions = $('#selSeat option:selected');
-                selectedOptions.each(function() {
-                    let s = $(this).val();
-                    myDiagram.startTransaction("delete seat");
-                    table.removeAt(s);
-                    myDiagram.commitTransaction("delete seat");
-                                        
-//                    console.log(table.elements.wc.n);
-//                    console.log(s);
-//                    console.log(this);
-//                    console.log(seats);
-                });
-                
-                //table.removeAt(3);
-                
-                $('#delSeatModal').modal('hide');
-            }            
-        }
-        
-    </script>
 </head>
 
 <body onload="init()">
@@ -905,7 +626,7 @@
             <div id="myDiagramDiv" style="border: solid 1px black" ondrop="openCrTbModal(event)" ondragover="allowDrop(event)"></div>
         </div>
         <div>
-            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createTableModal">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#createTableModal" onclick="showCreateRowModal()">
                 Create Line
             </button>
             <button type="button" class="btn btn-warning" data-toggle="modal" onclick="DeleteLine()">
@@ -917,12 +638,6 @@
             <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#delSeatModal" onclick="openDelSeatModal()">
                 Remove Seat
             </button>
-
-            <!--
-            <button type="button" class="btn btn-primary" data-toggle="modal" draggable="true">
-                Create table
-            </button>
--->
         </div>
 
         <div>
@@ -933,7 +648,7 @@
 
     <!-- Creating Table Modal -->
     <div class="modal fade" id="createTableModal" tabindex="-1" role="dialog" aria-labelledby="lbCreateTbModal" aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="lbCreateTbModal">Create table</h5>
@@ -944,44 +659,119 @@
                 <!--                <form>-->
                 <div class="modal-body">
                     <div class="form-group row">
-                        <label for="lineName" class="col-sm-3">Line Name<span class="required-label">*</span></label>
-                        <div class="col-sm-9">
+                        <label for="lineName" class="col-sm-2">Line Name<span class="required-label">*</span></label>
+                        <div class="col-sm-10">
                             <input type="text" class="form-control required-border" id="lineName" placeholder="Line Name" onchange="validateInput(this);" onkeyup="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="seatTotal" class="col-sm-3">Seat Total<span class="required-label">*</span></label>
-                        <div class="col-sm-9">
+                        <label for="seatTotal" class="col-sm-2">Seat Total<span class="required-label">*</span></label>
+                        <div class="col-sm-4">
                             <input type="number" min="1" class="form-control required-border" id="seatTotal" placeholder="Seat Total" onchange="validateNumber(this);" onkeyup="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">
+                        </div>
+                        <label for="grSeatDis" class="col-sm-3" style="text-align: right">Seat Distance<span class="required-label">*</span></label>
+                        <div class="input-group col-sm-3" id="grSeatDis">
+                            <input type="number" min="1" class="form-control required-border" id="seatDis" placeholder="Seat Distance" aria-label="Seat Distance" placeholder="Seat Distance" onchange="validateNumber(this);" onkeyup="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">
+                            <div class="input-group-append">
+                                <span class="input-group-text">pixel</span>
+                            </div>
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="seatTotal" class="col-sm-3">Start from<span class="required-label">*</span></label>
-                        <div class="col-sm-9">
+                        <label for="seatType" class="col-sm-3">Seat Type<span class="required-label">*</span></label>
+                        <div class="col-sm-9" id="seatType">
                             <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" id="rdStartTop" name="seatDirection" class="custom-control-input">
-                                <label class="custom-control-label" for="rdStartTop">
+                                <input type="radio" id="rdTwoSidesTop" name="seatType" class="custom-control-input" value="1">
+                                <label class="custom-control-label" for="rdTwoSidesTop">
                                     <img src="images/seat-direction-top.PNG" alt="seating direction top">
                                 </label>
                             </div>
                             <div class="custom-control custom-radio custom-control-inline">
-                                <input type="radio" id="rdStartBottom" name="seatDirection" class="custom-control-input">
-                                <label class="custom-control-label" for="rdStartBottom">
+                                <input type="radio" id="rdTwoSidesBottom" name="seatType" class="custom-control-input" value="2">
+                                <label class="custom-control-label" for="rdTwoSidesBottom">
                                     <img src="images/seat-direction-bottom.PNG" alt="seating direction bottom">
+                                </label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="rdOneSideTop" name="seatType" class="custom-control-input" value="3">
+                                <label class="custom-control-label" for="rdOneSideTop">
+                                    <img src="images/seat-one-side-top.PNG" alt="seating one side top">
+                                </label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="rdOneSideBottom" name="seatType" class="custom-control-input" value="4">
+                                <label class="custom-control-label" for="rdOneSideBottom">
+                                    <img src="images/seat-one-side-bottom.PNG" alt="seating one side bottom">
+                                </label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="rdOneSideTopOdd" name="seatType" class="custom-control-input" value="5">
+                                <label class="custom-control-label" for="rdOneSideTopOdd">
+                                    <img src="images/seat-one-side-top-odd.PNG" alt="seating one side odd top">
+                                </label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="rdOneSideBottomOdd" name="seatType" class="custom-control-input" value="6">
+                                <label class="custom-control-label" for="rdOneSideBottomOdd">
+                                    <img src="images/seat-one-side-bottom-odd.PNG" alt="seating one side bottom even">
+                                </label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="rdOneSideTopEven" name="seatType" class="custom-control-input" value="7">
+                                <label class="custom-control-label" for="rdOneSideTopEven">
+                                    <img src="images/seat-one-side-top-even.PNG" alt="seating one side even top">
+                                </label>
+                            </div>
+                            <div class="custom-control custom-radio custom-control-inline">
+                                <input type="radio" id="rdOneSideBottomEven" name="seatType" class="custom-control-input" value="8">
+                                <label class="custom-control-label" for="rdOneSideBottomEven">
+                                    <img src="images/seat-one-side-bottom-even.PNG" alt="seating one side even bottom">
                                 </label>
                             </div>
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="tableWidth" class="col-sm-3">Width</label>
+                        <label for="lineName" class="col-sm-3">Background Color</label>
                         <div class="col-sm-9">
-                            <input type="number" min="1" class="form-control required-border" id="tableWidth" placeholder="Line Width" onchange="validateNumber(this);" onkeyup="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">
+                            <input type="color" id="bgColorRow" style="height: 35px; width: 55px;" value="#deb887">
                         </div>
                     </div>
                     <div class="form-group row">
-                        <label for="tableHeight" class="col-sm-3">Height</label>
-                        <div class="col-sm-9">
-                            <input type="number" min="1" class="form-control required-border" id="tableHeight" placeholder="Line Height" onchange="validateNumber(this);" onkeyup="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">
+                        <label for="grWidth" class="col-sm-2">Width<span class="required-label">*</span></label>
+                        <div class="input-group col-sm-3" id="grWidth">
+                            <input type="number" min="1" class="form-control required-border" id="tableWidth" aria-label="Virtual Width" placeholder="Virtual Width" onchange="validateNumber(this);" onkeyup="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">
+                            <div class="input-group-append">
+                                <span class="input-group-text">pixel</span>
+                            </div>
+                        </div>
+                        <div class="custom-control custom-checkbox col-sm-1">
+                            <input type="checkbox" class="custom-control-input" id="cbCalculateWidth" onchange="calculateTableWidth(this)">
+                            <label class="custom-control-label" for="cbCalculateWidth" title="Based on seat total"></label>
+                        </div>
+
+                        <label for="grHeight" class="col-sm-2" style="text-align: right">Height<span class="required-label">*</span></label>
+                        <div class="input-group col-sm-4" id="grHeight">
+                            <input type="number" min="1" class="form-control required-border" id="tableHeight" aria-label="Virtual Height" placeholder="Virtual Height" onchange="validateNumber(this);" onkeyup="this.onchange();" onpaste="this.onchange();" oninput="this.onchange()">
+                            <div class="input-group-append">
+                                <span class="input-group-text">pixel</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group row">
+                        <label for="grActualWidth" class="col-sm-2">Actual Width</label>
+                        <div class="input-group col-sm-4" id="grActualWidth">
+                            <input type="number" min="1" class="form-control" id="tableActualWidth" aria-label="Actual Width" placeholder="Actual Width">
+                            <div class="input-group-append">
+                                <span class="input-group-text">meter</span>
+                            </div>
+                        </div>
+
+                        <label for="grActualHeight" class="col-sm-2" style="text-align: right">Actual Height</label>
+                        <div class="input-group col-sm-4" id="grActualHeight">
+                            <input type="number" min="1" class="form-control" id="tableActualHeight" aria-label="Actual Height">
+                            <div class="input-group-append">
+                                <span class="input-group-text">meter</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1037,4 +827,330 @@
     </div>
 </body>
 
+<script>
+    //jQuery('#selectSeat').multiselect();
+
+    $(document).ready(function() {
+        $('#selSeat').multiselect({
+            enableFiltering: true,
+            includeSelectAllOption: true
+        });
+    });
+
+    var newLineLoc = "0 0";
+
+    function CSeats(total) {
+        var seats = [];
+        if (total > 0) {
+            var p = new go.Point(0, -0.5); // start at top
+            var ang = 360 / total; // go clockwise
+            for (var i = 0; i < total; i++) {
+                seats.push(Seat(i + 1, new go.Spot(p.x + 0.5, p.y + 0.5)));
+                p.rotate(ang);
+            }
+        }
+        return seats;
+    }
+
+    function getSelectedRadioByName(rdName) {
+        var radios = document.getElementsByName(rdName);
+
+        for (var i = 0, length = radios.length; i < length; i++) {
+            if (radios[i].checked) {
+                return radios[i];
+                break;
+            }
+        }
+
+        return null;
+    }
+
+    function RecSeats(total, seatAlign, seatType, seatDistance, bgColorRow) {
+        console.log(seatAlign);
+        console.log(seatDistance);
+
+        var seats = [];
+
+        if (total > 0) {
+            let px = seatAlign;
+            let py = 0;
+            let ox = 0;
+            let oy = 0;
+
+            switch (seatType) {
+                case "1":
+                case "2":
+                    let o = 1,
+                        z = 0;
+
+                    if (seatType === "2") {
+                        o = 0;
+                        z = 1;
+                    }
+
+                    for (var i = 1; i <= total; i++) {
+                        if (i % 2 === 0) {
+                            seats.push(Seat(i, new go.Spot(px, o, ox, oy), go.Spot.Center, bgColorRow));
+                            px = px + seatAlign;
+                            ox = ox + seatDistance;
+                        } else {
+                            seats.push(Seat(i, new go.Spot(px, z, ox, oy), go.Spot.Center, bgColorRow));
+                        }
+                    }
+                    break;
+                case "3":
+                case "4":
+                    if (seatType === "3") py = 1;
+                    for (var i = 1; i <= total; i++) {
+                        seats.push(Seat(i, new go.Spot(px, py, ox, oy), go.Spot.Center, bgColorRow));
+                        px = px + seatAlign;
+                        ox = ox + seatDistance;
+                    }
+                    break;
+                case "5":
+                case "6":
+                    if (seatType === "5") py = 1;
+
+                    for (var i = 1; i <= total; i++) {
+                        let sn = i;
+                        if (i > 1) sn = i + (i - 1);
+
+                        seats.push(Seat(sn, new go.Spot(px, py, ox, oy), go.Spot.Center, bgColorRow));
+                        px = px + seatAlign;
+                        ox = ox + seatDistance;
+                    }
+                    break;
+                case "7":
+                case "8":
+                    if (seatType === "7") py = 1;
+
+                    for (var i = 1; i <= total; i++) {
+                        let sn = i + i;
+
+                        seats.push(Seat(sn, new go.Spot(px, py, ox, oy), go.Spot.Center, bgColorRow));
+                        px = px + seatAlign;
+                        ox = ox + seatDistance;
+                    }
+                    break;
+            }
+        }
+
+        return seats;
+    }
+
+    function createTable() {
+        const txtLineName = document.getElementById("lineName");
+        const txtTotalSeat = document.getElementById("seatTotal");
+        const txtSeatDis = document.getElementById("seatDis");
+        const txtTbWidth = document.getElementById("tableWidth");
+        const txtTbHeight = document.getElementById("tableHeight");
+        const seatType = getSelectedRadioByName("seatType");
+        const bgColorRow = document.getElementById("bgColorRow").value;
+        console.log(bgColorRow);
+
+        if (validateInput(txtLineName) && validateNumber(txtTotalSeat) && validateNumber(txtSeatDis) && seatType && seatType.value) {
+            const totalSeat = parseInt(txtTotalSeat.value);
+            const tbWidth = parseInt(txtTbWidth.value);
+            const tbHeight = parseInt(txtTbHeight.value);
+            const seatAlign = 35 / tbWidth;
+            const seatDistance = parseInt(txtSeatDis.value);
+
+            myDiagram.nodeTemplateMap.add("TableOO",
+                goJs(go.Node, "Spot", tableStyle(),
+                    goJs(go.Panel, "Spot",
+                        goJs(go.Shape, "Rectangle", {
+                                name: "TABLESHAPE",
+                                desiredSize: new go.Size(tbWidth, tbHeight),
+                                fill: bgColorRow,
+                                stroke: null
+                            },
+                            new go.Binding("desiredSize", "size", go.Size.parse).makeTwoWay(go.Size.stringify),
+                            new go.Binding("fill")),
+                        goJs(go.TextBlock, {
+                                editable: true,
+                                font: "bold 11pt Verdana, sans-serif"
+                            },
+                            new go.Binding("text", "name").makeTwoWay(),
+                            new go.Binding("angle", "angle", function(n) {
+                                return -n;
+                            }))
+                        /*goJs("Button", { desiredSize: new go.Size(40, 20), click: function(e, obj){
+                            myDiagram.startTransaction("add seat");
+                           // you need to figure out the arguments to the Seat function
+                           obj.part.add(Seat(9, "1 1", "0 0"));
+                           // and you need to figure out if and how to modify the
+                           // alignment and alignmentFocus of the other seats
+                           myDiagram.commitTransaction("add seat"); 
+                        }})*/
+                    ),
+                    RecSeats(totalSeat, seatAlign, seatType.value, seatDistance, bgColorRow)
+                ));
+
+            const l1 = {
+                "key": 5,
+                "category": "TableOO",
+                "name": txtLineName.value,
+                "guests": {},
+                "loc": newLineLoc
+            };
+
+            myDiagram.model.addNodeData(l1);
+            jQuery('#createTableModal').modal('hide');
+        }
+
+        console.log(myDiagram.model.Ce);
+    }
+
+    function DeleteLine() {
+        var table = myDiagram.selection.first();
+        console.log(table);
+
+        myDiagram.allowDelete = true;
+        myDiagram.commandHandler.deleteSelection();
+        myDiagram.allowDelete = false;
+    }
+
+    function AddSeat() {
+        var table = myDiagram.selection.first();
+        console.log(table);
+        console.log(table.data);
+        console.log(table.Ri);
+        console.log(table.elements.wc.n);
+
+        if (!(table instanceof go.Node)) return;
+        if (table.category == "") return; // must not be a Person
+        myDiagram.startTransaction("add seat");
+        // need to figure out the arguments to the Seat function
+        table.add(Seat(9, "1 1", "0 0"));
+        // and need to figure out if and how to modify the
+        // alignment and alignmentFocus of the other seats
+        myDiagram.commitTransaction("add seat");
+    }
+
+    function RemoveSeat() {
+        var table = myDiagram.selection.first();
+
+        if (table) {
+            table.removeAt(2);
+        } else {
+            return;
+        }
+
+        console.log(table);
+    }
+
+    function allowDrop(ev) {
+        ev.preventDefault();
+    }
+
+    function validateInput(e) {
+        if (e.value && e.value != "") {
+            e.classList.remove("required-border");
+            return true;
+        } else {
+            e.classList.add("required-border");
+            return false;
+        }
+    }
+
+    function validateNumber(e) {
+        const v = e.value;
+        if (v && v != "" && Number.isInteger(parseInt(v)) && parseInt(v) > 0) {
+            e.classList.remove("required-border");
+            return true;
+        } else {
+            e.classList.add("required-border");
+            return false;
+        }
+    }
+    
+    function openDelSeatModal() {
+        var optionSeats = [];
+        var table = myDiagram.selection.first();
+
+        if (table) {
+            const seats = table.elements.wc.n;
+            for (let s of seats) {
+                if (s.Sb && s.Sb !== "") {
+                    let o = s.Sb.toString();
+                    let option = {
+                        label: o,
+                        title: o,
+                        value: o
+                    };
+                    optionSeats.push(option);
+                }
+            }
+            $('#selSeat').multiselect('dataprovider', optionSeats);
+        } else {
+            return;
+        }
+    }
+
+    function delSeat() {
+        var table = myDiagram.selection.first();
+        if (table) {
+            const seats = table.elements.wc.n;
+            var selectedOptions = $('#selSeat option:selected');
+            selectedOptions.each(function() {
+                let s = $(this).val();
+                myDiagram.startTransaction("delete seat");
+                table.removeAt(s);
+                myDiagram.commitTransaction("delete seat");
+            });
+
+            $('#delSeatModal').modal('hide');
+        }
+    }
+
+    function calculateTableWidth(e) {
+        if (!e.checked) return;
+        const txtTotalSeat = document.getElementById("seatTotal");
+        const txtSeatDis = document.getElementById("seatDis");
+
+        if (txtTotalSeat.value === "") {
+            alert("Please input total seat");
+            e.checked = false;
+            return;
+        }
+        if (txtSeatDis.value === "") {
+            alert("Please input seat distance");
+            e.checked = false;
+            return;
+        }
+
+        let totalSeat = parseInt(txtTotalSeat.value);
+        const seatDistance = parseInt(txtSeatDis.value);
+        const seatType = getSelectedRadioByName("seatType");
+
+        if (seatType === undefined || seatType === null) {
+            alert("Please select Seat Type");
+            e.checked = false;
+            return;
+        }
+
+        let tableWidth = (totalSeat * 35) + (txtSeatDis.value * (totalSeat - 1)) + 35;
+        let haftWidth = Math.floor(tableWidth / 2);
+
+        switch (seatType.value) {
+            case "1":
+            case "2":
+                haftWidth = totalSeat % 2 === 1 ? haftWidth + 35 : haftWidth + 15;
+                document.getElementById("tableWidth").value = haftWidth;
+                validateInput(widthElement);
+                break;
+            default:
+                document.getElementById("tableWidth").value = tableWidth;
+                validateInput(widthElement);
+                break;
+        }
+    }
+
+    const widthElement = document.getElementById("tableWidth");
+    
+    function showCreateRowModal() {        
+        validateInput(widthElement);
+    }
+</script>
+    
 </html>
